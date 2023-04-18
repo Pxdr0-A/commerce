@@ -1,0 +1,28 @@
+{% extends "auctions/layoutInner.html" %}
+
+{% block body %}
+
+    <h1> Welcome to {{ auction_info.2 }} Auctions. </h1>
+
+    <h2> Active listings of Auction {{ auction_info.3 }}. </h2>
+
+    <ul>
+        {% for id, listing, description, n_bids in listings %}
+            {% if n_bids == 0 %}
+                <li> {{ listing }} ({{ n_bids }}) </li>
+                <p> {{ description }} </p>        
+                <form action="{% url 'add_bid' auction_info.0 auction_info.1 id %}" method="post">
+                    {% csrf_token %}
+                    {{ add_bid_form }}
+                    <input type="submit" value="Start biding">
+                </form>
+            {% else %}
+                <li> <a href="{% url 'listing' auction_info.0 auction_info.1 id %}"> {{ listing }} ({{n_bids}}) </a> </li>
+                <p> {{ description }} </p>
+            {% endif %}
+        {% empty %}
+            <li> No listings available. Consider creating one. </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

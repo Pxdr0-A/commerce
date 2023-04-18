@@ -1,0 +1,49 @@
+{% extends "auctions/layoutInner.html" %}
+
+{% block body %}
+
+    <h1> Welcome to {{ listing_info.3 }} Auctions. </h1>
+
+    <h2> Active listing of Auction {{ listing_info.4 }}: {{ listing_info.5 }} </h2>
+    <p> {{ listing_info.6}} </p>
+
+    <h3> Bids </h3>
+    <ul>
+        {% for bid, name in bids %}
+            <li> {{ bid }} by {{ name }} </li>
+        {% empty %}
+            <li> No bids on this listing. Consider creating one. </li>
+        {% endfor %}
+    </ul>
+    <h4> Bid! </h4>
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <form action="{% url 'add_bid' listing_info.0 listing_info.1 listing_info.2 %}" method="post">
+        {% csrf_token %}
+        {{ add_bid_form }}
+        <input type="submit" value="Set new bid">
+    </form>
+
+    <h3> Comments </h3>
+    <ul>
+        {% for comment in comments %}
+            <li> {{ comment.name }} </li>
+            <p> {{ comment.comment }} </p>
+        {% empty %}
+            <li> No comments on this listing. Consider creating one. </li>
+        {% endfor %}
+    </ul>
+
+    <h4> Add a comment: </h4>
+    <form action="{% url 'add_listing_comment' listing_info.0 listing_info.1 listing_info.2 %}" method="post">
+        {% csrf_token %}
+        {{ add_comment_form }}
+        <input type="submit" value="Post Comment">
+    </form>
+
+{% endblock %}

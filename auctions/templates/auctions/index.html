@@ -1,0 +1,17 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <h2>Active Listings</h2>
+    <div>
+        <ul>
+            {% for id, name, description, n_auctions in types %}
+                <li> <a href="{% url 'auction_type' id %}"> {{ name }} ({{ n_auctions }}) </a> </li>
+                <p> {{ description }} </p>
+            {% empty %}
+                <li> No auctions available. Consider creating one! </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+{% endblock %}
