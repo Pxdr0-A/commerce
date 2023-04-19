@@ -1,27 +1,28 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django import forms
 
-from .models import User, AuctionType, Auction, Listing, ListingComment, Bid
-from .my_forms import AddBid, AddCommentForm
+from .models import User, Auction, AuctionType, Listing, ListingComment, Bid
+from .my_forms import AddBid, AddCommentForm, AddAuction, AddListing
+
 
 def index(request):
     data = AuctionType.objects.all()
     types = []
     for obj in data:
         types.append((
-            obj.id, obj.type_name, 
-            obj.description, 
+            obj.id, obj.type_name,
+            obj.description,
             len(obj.auctions.filter(active=True))
         ))
 
     return render(request, "auctions/index.html", {
         "types": types
     })
+
 
 def login_view(request):
     if request.method == "POST":
@@ -73,7 +74,9 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
+
 def auction_type(request, id_type):
+    # ADD A START LISTING OPTION
     data = AuctionType.objects.filter(id=id_type).first()
     type_name = data.type_name
     description = data.description
@@ -86,15 +89,22 @@ def auction_type(request, id_type):
 
     return render(request, "auctions/type.html", {
         "type_info": [id_type, type_name, description],
-        "auctions": auctions
+        "auctions": auctions,
+        "add_auction_form": AddAuction()
     })
 
-def auction(request, id_type, id_auction):
-    auction_type = AuctionType.objects.filter(id=id_type).first()
-    auction = auction_type.auctions.filter(id=id_auction).first()
-    auction_info = [id_type, id_auction, auction_type.type_name, auction.auction_name]
 
-    active_listings = auction.listings.filter(active=True)
+def auction(request, id_type, id_auction):
+    auction_type_obj = AuctionType.objects.filter(id=id_type).first()
+    auction_obj = auction_type_obj.auctions.filter(id=id_auction).first()
+    auction_info = [
+        id_type,
+        id_auction,
+        auction_type_obj.type_name,
+        auction_obj.auction_name
+    ]
+
+    active_listings = auction_obj.listings.filter(active=True)
     listings = []
     for obj in active_listings:
         listings.append((
@@ -103,17 +113,27 @@ def auction(request, id_type, id_auction):
     return render(request, "auctions/auction.html", {
         "auction_info": auction_info,
         "listings": listings,
+        "add_listing_form": AddListing(),
         "add_bid_form": AddBid(),
     })
 
-def listing(request, id_type, id_auction, id_listing):
-    auction_type = AuctionType.objects.filter(id=id_type).first()
-    auction = auction_type.auctions.filter(id=id_auction).first()
-    listing = auction.listings.filter(id=id_listing).first()
-    comments = listing.comments.all()
-    listing_info = [id_type, id_auction, id_listing, auction_type.type_name, auction.auction_name, listing.listing, listing.description]
 
-    all_bids = listing.bids.all().order_by("-bid")
+def listing(request, id_type, id_auction, id_listing):
+    auction_type_obj = AuctionType.objects.filter(id=id_type).first()
+    auction_obj = auction_type_obj.auctions.filter(id=id_auction).first()
+    listing_obj = auction_obj.listings.filter(id=id_listing).first()
+    comments = listing_obj.comments.all()
+    listing_info = [
+        id_type,
+        id_auction,
+        id_listing,
+        auction_type_obj.type_name,
+        auction_obj.auction_name,
+        listing_obj.listing,
+        listing_obj.description
+    ]
+
+    all_bids = listing_obj.bids.all().order_by("-bid")
     bids = []
     for obj in all_bids:
         bids.append((
@@ -128,36 +148,77 @@ def listing(request, id_type, id_auction, id_listing):
         "add_comment_form": AddCommentForm()
     })
 
+
+def add_auction(request, id_type):
+    if request.method == "POST":
+        form = AddAuction(request.POST)
+
+        if form.is_valid():
+            auction_obj = Auction(
+                auction_name=form.cleaned_data["name"],
+                auction_type=AuctionType.objects.filter(id=id_type).first(),
+                active=form.cleaned_data["active"]
+            )
+            auction_obj.save()
+
+            return HttpResponseRedirect(reverse("auction_type", args=(id_type,)))
+        else:
+            messages.error(request, "Form is not valid.")
+            return HttpResponseRedirect(reverse("auction_type", args=(id_type,)))
+
+
+def add_listing(request, id_type, id_auction):
+    if request.method == "POST":
+        form = AddListing(request.POST)
+
+        if form.is_valid():
+            print("hello")
+            listing_obj = Listing(
+                auction=Auction.objects.filter(id=id_auction).first(),
+                listing=form.cleaned_data["listing"],
+                description=form.cleaned_data["description"],
+                active=form.cleaned_data["active"]
+            )
+            listing_obj.save()
+
+            return HttpResponseRedirect(reverse("auction", args=(id_type, id_auction)))
+        else:
+            messages.error(request, "Form is not valid.")
+            return HttpResponseRedirect(reverse("auction", args=(id_type, id_auction)))
+
+
 def add_bid(request, id_type, id_auction, id_listing):
     if request.method == "POST":
         form = AddBid(request.POST)
 
         if form.is_valid():
             bid = form.cleaned_data["bid"]
-            
-            auction_type = AuctionType.objects.filter(id=id_type).first()
-            auction = auction_type.auctions.filter(id=id_auction).first()
-            listing = auction.listings.filter(id=id_listing).first()
-            all_bids = listing.bids.all().order_by("-bid")
+
+            auction_type_obj = AuctionType.objects.filter(id=id_type).first()
+            auction_obj = auction_type_obj.auctions.filter(id=id_auction).first()
+            listing_obj = auction_obj.listings.filter(id=id_listing).first()
+            all_bids = listing_obj.bids.all().order_by("-bid")
             try:
                 current_bid = all_bids.first().bid
             except AttributeError:
                 current_bid = 0
 
-            if current_bid >= bid and current_bid != None:
+            if bid <= current_bid is not None:
                 messages.error(request, "The bid needs to be higher than the current one.")
                 return HttpResponseRedirect(reverse("listing", args=(id_type, id_auction, id_listing)))
 
             user = request.user
-            listing = Listing.objects.get(id=id_listing)
+            listing_obj = Listing.objects.get(id=id_listing)
             name = User.objects.get(username=user)
-            bid_obj = Bid(product=listing, name=name, bid=bid)
+            bid_obj = Bid(product=listing_obj, name=name, bid=bid)
             bid_obj.save()
 
             return HttpResponseRedirect(reverse("listing", args=(id_type, id_auction, id_listing)))
         else:
             messages.error(request, "Form is not valid.")
-        
+            return HttpResponseRedirect(reverse("listing", args=(id_type, id_auction, id_listing)))
+
+
 def add_listing_comment(request, id_type, id_auction, id_listing):
     if request.method == "POST":
         form = AddCommentForm(request.POST)
@@ -166,9 +227,9 @@ def add_listing_comment(request, id_type, id_auction, id_listing):
             comment = form.cleaned_data["comment"]
             user = request.user
 
-            listing = Listing.objects.get(id=id_listing)
+            listing_obj = Listing.objects.get(id=id_listing)
             name = User.objects.get(username=user)
-            comment_obj = ListingComment(listing=listing, name=name, comment=comment)
+            comment_obj = ListingComment(listing=listing_obj, name=name, comment=comment)
             comment_obj.save()
 
             return HttpResponseRedirect(reverse("listing", args=(id_type, id_auction, id_listing)))

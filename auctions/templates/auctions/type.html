@@ -2,20 +2,27 @@
 
 {% block body %}
 
-<h1> Available auctions at type {{ type_info.1 }} </h1>
-<p> {{ type_info.2 }} </p>
-<div>
-    <ul>
-        {% for id, name, n_listings in auctions %}
-            {% if n_listings == 0 %}
-                <li> {{ name }} ({{ n_listings }}) </li>
-            {% else %}
-                <li> <a href="{% url 'auction' type_info.0 id %}"> {{ name }} ({{ n_listings }}) </a> </li>
-            {% endif %}
-        {% empty %}
-            <li> No auctions available. Consider creating one! </li>
-        {% endfor %}
-    </ul>
-</div>
+    <h1> Available auctions at type {{ type_info.1 }} </h1>
+    <p> {{ type_info.2 }} </p>
+    <div>
+        <ul>
+            {% for id, name, n_listings in auctions %}
+                {% if n_listings == 0 %}
+                    <li> {{ name }} ({{ n_listings }}) </li>
+                {% else %}
+                    <li> <a href="{% url 'auction' type_info.0 id %}"> {{ name }} ({{ n_listings }}) </a> </li>
+                {% endif %}
+            {% empty %}
+                <li> No auctions available. Consider creating one! </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <h2> Open an Auction: </h2>
+    <form action="{% url 'add_auction' type_info.0 %}" method="post">
+        {% csrf_token %}
+        {{ add_auction_form }}
+        <input type="submit" value="Open Auction">
+    </form>
 
 {% endblock %}

@@ -4,12 +4,19 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    # login
     path("login", views.login_view, name="login"),
     path("logout", views.logout_view, name="logout"),
     path("register", views.register, name="register"),
+    # views
     path("view/<int:id_type>", views.auction_type, name="auction_type"),
     path("view/<int:id_type>/<int:id_auction>", views.auction, name="auction"),
     path("view/<int:id_type>/<int:id_auction>/<int:id_listing>", views.listing, name="listing"),
-    path("add/comment/<int:id_type>/<int:id_auction>/<int:id_listing>", views.add_listing_comment, name="add_listing_comment"),
-    path("add/bid/<int:id_type>/<int:id_auction>/<int:id_listing>", views.add_bid, name="add_bid")
+    # add elements
+    path("add/auction/<int:id_type>", views.add_auction, name="add_auction"),
+    path("add/auction/<int:id_type>/<int:id_auction>", views.add_listing, name="add_listing"),
+    path("add/bid/<int:id_type>/<int:id_auction>/<int:id_listing>", views.add_bid, name="add_bid"),
+    path("add/comment/<int:id_type>/<int:id_auction>/<int:id_listing>",
+         views.add_listing_comment,
+         name="add_listing_comment")
 ]
