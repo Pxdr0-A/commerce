@@ -1,6 +1,7 @@
 {% extends "auctions/layoutInner.html" %}
 
 {% block body %}
+    <a href="{% url 'auction' listing_info.0 listing_info.1 %}"> back </a>
 
     <h1> Welcome to {{ listing_info.3 }} Auctions. </h1>
 

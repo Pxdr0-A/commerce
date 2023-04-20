@@ -1,6 +1,7 @@
 {% extends "auctions/layoutInner.html" %}
 
 {% block body %}
+    <a href="{% url 'auction_type' auction_info.0 %}"> back </a>
 
     <h1> Welcome to {{ auction_info.2 }} Auctions. </h1>
 
@@ -26,7 +27,7 @@
     </ul>
 
     <h2> Add a new listing: </h2>
-    <form action="{% url 'add_listing' auction_info.0 auction_info.1  %}" method="post">
+    <form action="{% url 'add_listing' auction_info.0 auction_info.1 %}" method="post">
         {% csrf_token %}
         {{ add_listing_form }}
         <input type="submit" value="Open Listing">

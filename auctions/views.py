@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from .models import User, Auction, AuctionType, Listing, ListingComment, Bid
-from .my_forms import AddBid, AddCommentForm, AddAuction, AddListing
+from .my_forms import AddBid, AddCommentForm, AddAuction, AddListing, AddType
 
 
 def index(request):
@@ -20,7 +20,8 @@ def index(request):
         ))
 
     return render(request, "auctions/index.html", {
-        "types": types
+        "types": types,
+        "add_type_form": AddType()
     })
 
 
@@ -90,7 +91,8 @@ def auction_type(request, id_type):
     return render(request, "auctions/type.html", {
         "type_info": [id_type, type_name, description],
         "auctions": auctions,
-        "add_auction_form": AddAuction()
+        "add_auction_form": AddAuction(),
+        "add_listing_form": AddListing()
     })
 
 
@@ -149,6 +151,23 @@ def listing(request, id_type, id_auction, id_listing):
     })
 
 
+def add_type(request):
+    if request.method == "POST":
+        form = AddType(request.POST)
+
+        if form.is_valid():
+            type_obj = AuctionType(
+                type_name=form.cleaned_data["name"],
+                description=form.cleaned_data["description"],
+            )
+            type_obj.save()
+
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            messages.error(request, "Form is not valid.")
+            return HttpResponseRedirect(reverse("index"))
+
+
 def add_auction(request, id_type):
     if request.method == "POST":
         form = AddAuction(request.POST)
@@ -172,7 +191,6 @@ def add_listing(request, id_type, id_auction):
         form = AddListing(request.POST)
 
         if form.is_valid():
-            print("hello")
             listing_obj = Listing(
                 auction=Auction.objects.filter(id=id_auction).first(),
                 listing=form.cleaned_data["listing"],

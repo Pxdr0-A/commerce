@@ -13,6 +13,7 @@ urlpatterns = [
     path("view/<int:id_type>/<int:id_auction>", views.auction, name="auction"),
     path("view/<int:id_type>/<int:id_auction>/<int:id_listing>", views.listing, name="listing"),
     # add elements
+    path("add/type", views.add_type, name="add_type"),
     path("add/auction/<int:id_type>", views.add_auction, name="add_auction"),
     path("add/auction/<int:id_type>/<int:id_auction>", views.add_listing, name="add_listing"),
     path("add/bid/<int:id_type>/<int:id_auction>/<int:id_listing>", views.add_bid, name="add_bid"),
