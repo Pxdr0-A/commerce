@@ -8,10 +8,11 @@
     <h2> Active listings of Auction {{ auction_info.3 }}. </h2>
 
     <ul>
-        {% for id, listing, description, n_bids in listings %}
+        {% for id, listing, description, n_bids, url in listings %}
             {% if n_bids == 0 %}
                 <li> {{ listing }} ({{ n_bids }}) </li>
-                <p> {{ description }} </p>        
+                <p> {{ description }} </p>
+                <img src='{{ url }}' width="200" height="200">
                 <form action="{% url 'add_bid' auction_info.0 auction_info.1 id %}" method="post">
                     {% csrf_token %}
                     {{ add_bid_form }}

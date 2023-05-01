@@ -2,6 +2,18 @@
 
 {% block body %}
     {% if user.is_authenticated %}
+        <h2> Your watchList </h2>
+            <ul>
+                {% for listing in watch_list %}
+                        <li>
+                            <a href="{% url "listing" listing.auction.auction_type.id listing.auction.id listing.id %}">
+                            {{ listing }}
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li> Your watchlist is empty </li>
+                {% endfor %}
+            </ul>
         <h2>Active Listings</h2>
         <div>
             <ul>

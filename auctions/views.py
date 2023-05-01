@@ -19,9 +19,14 @@ def index(request):
             len(obj.auctions.filter(active=True))
         ))
 
+    watch_list = []
+    if request.user.is_authenticated:
+        watch_list = request.user.watch_list.all()
+
     return render(request, "auctions/index.html", {
         "types": types,
-        "add_type_form": AddType()
+        "add_type_form": AddType(),
+        "watch_list": watch_list
     })
 
 
@@ -110,7 +115,7 @@ def auction(request, id_type, id_auction):
     listings = []
     for obj in active_listings:
         listings.append((
-            obj.id, obj.listing, obj.description, len(obj.bids.all())
+            obj.id, obj.listing, obj.description, len(obj.bids.all()), obj.url
         ))
     return render(request, "auctions/auction.html", {
         "auction_info": auction_info,
@@ -132,8 +137,14 @@ def listing(request, id_type, id_auction, id_listing):
         auction_type_obj.type_name,
         auction_obj.auction_name,
         listing_obj.listing,
-        listing_obj.description
+        listing_obj.description,
+        listing_obj.url
     ]
+    watch_list = request.user.watch_list.all()
+    if Listing.objects.get(id=id_listing) in watch_list:
+        listing_in_watchlist = True
+    else:
+        listing_in_watchlist = False
 
     all_bids = listing_obj.bids.all().order_by("-bid")
     bids = []
@@ -147,7 +158,8 @@ def listing(request, id_type, id_auction, id_listing):
         "listing_info": listing_info,
         "comments": comments.order_by("-id"),
         "add_bid_form": AddBid(),
-        "add_comment_form": AddCommentForm()
+        "add_comment_form": AddCommentForm(),
+        "listing_in_watchlist": listing_in_watchlist
     })
 
 
@@ -193,8 +205,10 @@ def add_listing(request, id_type, id_auction):
         if form.is_valid():
             listing_obj = Listing(
                 auction=Auction.objects.filter(id=id_auction).first(),
+                author=request.user,
                 listing=form.cleaned_data["listing"],
                 description=form.cleaned_data["description"],
+                url=form.cleaned_data["url"],
                 active=form.cleaned_data["active"]
             )
             listing_obj.save()
@@ -251,3 +265,21 @@ def add_listing_comment(request, id_type, id_auction, id_listing):
             comment_obj.save()
 
             return HttpResponseRedirect(reverse("listing", args=(id_type, id_auction, id_listing)))
+
+
+def add_to_watchlist(request, id_type, id_auction, id_listing):
+    if request.method == "POST":
+        listing_obj = Listing.objects.get(id=id_listing)
+        listing_obj.watch_list.add(request.user)
+        messages.info(request, "Successfully added to your watchlist.")
+
+    return HttpResponseRedirect(reverse("listing", args=(id_type, id_auction, id_listing)))
+
+
+def remove_from_watchlist(request, id_type, id_auction, id_listing):
+    if request.method == "POST":
+        listing_obj = Listing.objects.get(id=id_listing)
+        listing_obj.watch_list.remove(request.user)
+        messages.info(request, "Listing removed from your watchlist.")
+
+    return HttpResponseRedirect(reverse("listing", args=(id_type, id_auction, id_listing)))

@@ -15,6 +15,7 @@ class AddListing(forms.Form):
         widget=forms.Textarea(attrs={"rows": 2, "cols": 20, "required": True}),
         label="description"
     )
+    url = forms.URLField()
     active = forms.BooleanField(initial=True)
 
 
