@@ -25,8 +25,11 @@ class Auction(models.Model):
 
 class Listing(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, related_name="listings")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings", default="0")
+    watch_list = models.ManyToManyField(User, blank=True, related_name="watch_list")
     listing = models.CharField(max_length=64)
     description = models.TextField()
+    url = models.URLField(default="")
     active = models.BooleanField()
 
     def __str__(self) -> str:

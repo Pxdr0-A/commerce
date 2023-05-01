@@ -1,24 +1,24 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+    {% if user.is_authenticated %}
+        <h2>Active Listings</h2>
+        <div>
+            <ul>
+                {% for id, name, description, n_auctions in types %}
+                    <li> <a href="{% url 'auction_type' id %}"> {{ name }} ({{ n_auctions }}) </a> </li>
+                    <p> {{ description }} </p>
+                {% empty %}
+                    <li> No types of auctions available. Consider creating one! </li>
+                {% endfor %}
+            </ul>
+        </div>
 
-    <h2>Active Listings</h2>
-    <div>
-        <ul>
-            {% for id, name, description, n_auctions in types %}
-                <li> <a href="{% url 'auction_type' id %}"> {{ name }} ({{ n_auctions }}) </a> </li>
-                <p> {{ description }} </p>
-            {% empty %}
-                <li> No types of auctions available. Consider creating one! </li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <h2> Open a type of auction: </h2>
-    <form action="{% url 'add_type' %}" method="post">
-        {% csrf_token %}
-        {{ add_type_form }}
-        <input type="submit" value="Open type of auction">
-    </form>
-    
+        <h2> Open a type of auction: </h2>
+        <form action="{% url 'add_type' %}" method="post">
+            {% csrf_token %}
+            {{ add_type_form }}
+            <input type="submit" value="Open type of auction">
+        </form>
+    {% endif %}
 {% endblock %}
