@@ -138,7 +138,8 @@ def listing(request, id_type, id_auction, id_listing):
         auction_obj.auction_name,
         listing_obj.listing,
         listing_obj.description,
-        listing_obj.url
+        listing_obj.url,
+        listing_obj.author
     ]
     watch_list = request.user.watch_list.all()
     if Listing.objects.get(id=id_listing) in watch_list:
